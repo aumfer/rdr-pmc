@@ -28,6 +28,6 @@ module.exports = {
     plugins: [new HtmlWebpackPlugin({
         title: 'Anthony Umfer'
     }), new webpack.DefinePlugin({
-        'process.env.SOCKET_SERVER': JSON.stringify('http://rdr-pma-git.alteredco.com')
+        'process.env.SOCKET_SERVER': JSON.stringify('https://rdr-pma-git.alteredco.com')
     })]
 };
