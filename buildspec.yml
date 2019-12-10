@@ -1,0 +1,43 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+      dotnet: 2.2
+    commands:
+      # set some environment variables
+      # these are all computed from incoming environment variables
+      - TF_VAR_repo_name=`basename $CODEBUILD_SOURCE_REPO_URL`
+      - TF_VAR_repo_name=`echo $TF_VAR_repo_name | tr '[:upper:]' '[:lower:]'`
+      - TF_VAR_repo_name=`echo $TF_VAR_repo_name | sed 's/_/-/g'` # no underscores
+      - TF_VAR_repo_name=`echo $TF_VAR_repo_name | sed 's/\./-/g'` # no dots
+      - TF_VAR_branch_name=`git name-rev $CODEBUILD_RESOLVED_SOURCE_VERSION --name-only`
+      - TF_VAR_branch_name=`basename $TF_VAR_branch_name`
+      - TF_VAR_branch_name=`echo $TF_VAR_branch_name | tr '[:upper:]' '[:lower:]'`
+      - TF_VAR_branch_name=`echo $TF_VAR_branch_name | sed 's/_/-/g'` # no underscores
+      - TF_VAR_branch_name=`echo $TF_VAR_branch_name | sed 's/\./-/g'` # no dots
+      - TF_VAR_ecr_repo=021370510137.dkr.ecr.us-east-1.amazonaws.com/radar
+      - TF_VAR_source_rev=$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - TF_VAR_eth_url=$ETH_URL
+      # todo error if repo_name + branch_name > 63
+      # environment: see TF_VAR_ and CODEBUILD_
+      - cat /etc/os-release
+      - printenv
+      - wget -nv https://releases.hashicorp.com/terraform/0.12.17/terraform_0.12.17_linux_amd64.zip
+      - unzip terraform_0.12.17_linux_amd64.zip
+      - install terraform /usr/local/bin/
+      - terraform --version
+  build:
+    commands:
+      # node
+      - npm install
+      - npm run build
+  post_build:
+    commands:
+      - cd deploy
+      - git clone https://github.com/aumfer/terraform-s3-bucket-folder terraform-s3-bucket-folder
+      - dotnet run --project ./terraform-s3-bucket-folder/terraform-s3-bucket-folder.csproj '${module.website.s3_bucket_name}' dist
+      - terraform init --backend-config="key=$TF_VAR_repo_name/$TF_VAR_branch_name"
+      - terraform apply -auto-approve
+      - cd ..
