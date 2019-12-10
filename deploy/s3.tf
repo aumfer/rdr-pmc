@@ -5,4 +5,5 @@ module "website" {
   name           = "${var.repo_name}-${var.branch_name}"
   hostname       = "${var.branch_name}.${var.repo_name}.alteredco.com"
   parent_zone_id = data.aws_route53_zone.primary.zone_id
+  tags           = module.tags.tags
 }
