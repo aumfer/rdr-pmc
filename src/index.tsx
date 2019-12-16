@@ -9,6 +9,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 
 interface ITransaction {
     hash: string
+    from: string
 }
 
 const transactions = observable(([] as ITransaction[]));
@@ -37,7 +38,7 @@ const TransactionsList = observer(({ transactions }: ITransactionsListProps) =>
         <FixedSizeList height={height} width={width} itemSize={46} itemCount={transactions.length}>
             {({ index, style }) =>
                 <li style={style}>
-                    {transactions[index].hash}
+                    {transactions[index].hash} from {transactions[index].from}
                 </li>
             }
         </FixedSizeList>
